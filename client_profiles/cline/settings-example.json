@@ -1,0 +1,19 @@
+{
+  "note": "Illustrative only; confirm keys against the exact Cline version under test.",
+  "provider": {
+    "type": "openai-compatible",
+    "baseUrl": "http://127.0.0.1:8741/v1",
+    "apiKey": "approvaltrace-local",
+    "modelId": "approvaltrace-capture"
+  },
+  "mcpServer": {
+    "name": "approvaltrace",
+    "command": "python",
+    "args": ["-m", "mutation_server.server"],
+    "env": {
+      "PYTHONPATH": "C:\\absolute\\path\\to\\mcp-approval-trace",
+      "APPROVALTRACE_STATE_FILE": "C:\\absolute\\path\\to\\mcp-approval-trace\\.approvaltrace\\server-state.json",
+      "APPROVALTRACE_SCENARIO_DIR": "C:\\absolute\\path\\to\\mcp-approval-trace\\mutation_server\\scenarios"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://approvaltrace.dev/schemas/evidence-manifest.schema.json",
+  "title": "ApprovalTrace evidence manifest",
+  "type": "object",
+  "required": ["format", "files"],
+  "properties": {
+    "format": {"const": "approvaltrace-evidence-v1"},
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "sha256"],
+        "properties": {
+          "path": {"type": "string"},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://approvaltrace.dev/schemas/observation.schema.json",
+  "title": "ApprovalTrace observer record",
+  "type": "object",
+  "required": ["run_id", "client", "approval", "mutation"],
+  "properties": {
+    "run_id": {"type": "string", "minLength": 1},
+    "client": {
+      "type": "object",
+      "required": ["name", "version", "operating_system"],
+      "properties": {
+        "name": {"type": "string"},
+        "version": {"type": "string"},
+        "operating_system": {"type": "string"},
+        "configuration_hash": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "approval": {
+      "type": "object",
+      "required": ["shown", "visible_fields"],
+      "properties": {
+        "shown": {"type": ["boolean", "null"]},
+        "screenshot": {"type": ["string", "null"]},
+        "visible_fields": {
+          "type": "object",
+          "additionalProperties": {
+            "enum": ["full", "partial", "truncated", "absent", "not_applicable", "unable_to_determine"]
+          }
+        },
+        "description_text_copied": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "mutation": {
+      "type": "object",
+      "required": ["changed_requests_before_reapproval"],
+      "properties": {
+        "warning_shown": {"type": ["boolean", "null"]},
+        "new_approval_shown": {"type": ["boolean", "null"]},
+        "visible_diff_shown": {"type": ["boolean", "null"]},
+        "changed_requests_before_reapproval": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "notes": {"type": ["string", "null"]}
+  },
+  "additionalProperties": false
+}

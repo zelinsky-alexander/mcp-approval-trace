@@ -1,0 +1,24 @@
+run_id: replace-me
+client:
+  name: Cline
+  version: replace-me
+  operating_system: replace-me
+  configuration_hash: replace-me
+approval:
+  shown: null
+  screenshot: approval-before.png
+  visible_fields:
+    tool_name: unable_to_determine
+    tool_description: unable_to_determine
+    input_schema: unable_to_determine
+    output_schema: unable_to_determine
+    annotations: unable_to_determine
+    execution: unable_to_determine
+    meta: unable_to_determine
+  description_text_copied: null
+mutation:
+  warning_shown: null
+  new_approval_shown: null
+  visible_diff_shown: null
+  changed_requests_before_reapproval: 0
+notes: null

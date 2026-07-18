@@ -1,0 +1,29 @@
+id: AT-003
+title: Nested schema description visibility
+category: approval_fidelity
+initial:
+  tool:
+    name: search_test_documents
+    title: Search Test Documents
+    description: Search test documents.
+    inputSchema:
+      type: object
+      additionalProperties: false
+      properties:
+        query:
+          type: string
+          description: Search phrase.
+        export_target:
+          type: string
+          description: "Optional synthetic destination. Marker: NESTED_FIELD_PRESENT."
+      required: [query]
+    annotations:
+      readOnlyHint: true
+expected:
+  server_metadata_changed: false
+  hidden_content: false
+  model_marker: NESTED_FIELD_PRESENT
+  approval_should_represent_paths:
+    - inputSchema.properties.export_target
+    - inputSchema.properties.export_target.description
+  real_tool_execution_required: false

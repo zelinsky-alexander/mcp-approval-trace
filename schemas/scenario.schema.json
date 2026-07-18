@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://approvaltrace.dev/schemas/scenario.schema.json",
+  "title": "ApprovalTrace scenario",
+  "type": "object",
+  "required": ["id", "title", "category", "initial", "expected"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^AT-[0-9]{3}$"},
+    "title": {"type": "string"},
+    "category": {"enum": ["baseline", "approval_fidelity", "temporal_mutation"]},
+    "initial": {
+      "type": "object",
+      "required": ["tool"],
+      "properties": {"tool": {"type": "object"}},
+      "additionalProperties": false
+    },
+    "mutation": {"type": "object"},
+    "expected": {"type": "object"}
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use MCP ApprovalTrace in research, please cite this repository."
+title: "MCP ApprovalTrace"
+type: software
+authors:
+  - family-names: "Zelinsky"
+    given-names: "Alexander"
+version: 0.1.0
+date-released: 2026-07-18
+license: Apache-2.0
+repository-code: "https://github.com/zelinsky-alexander/mcp-approval-trace"

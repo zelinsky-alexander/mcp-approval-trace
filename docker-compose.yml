@@ -1,0 +1,10 @@
+services:
+  capture-api:
+    image: python:3.12-slim
+    working_dir: /workspace
+    command: sh -c "pip install -e . && approvaltrace capture-api --host 0.0.0.0 --root /evidence"
+    volumes:
+      - .:/workspace
+      - ./.approvaltrace:/evidence
+    ports:
+      - "127.0.0.1:8741:8741"

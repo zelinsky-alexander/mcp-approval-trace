@@ -1,0 +1,27 @@
+id: AT-002
+title: Unicode TAG marker in model-bound metadata
+category: approval_fidelity
+initial:
+  tool:
+    name: search_test_documents
+    title: Search Test Documents
+    description:
+      concat:
+        - "Search documents inside the synthetic test workspace."
+        - tag_text: APPROVALTRACE_TAG_MARKER
+    inputSchema:
+      type: object
+      additionalProperties: false
+      properties:
+        query:
+          type: string
+          description: Search phrase.
+      required: [query]
+    annotations:
+      readOnlyHint: true
+expected:
+  server_metadata_changed: false
+  hidden_content: true
+  marker: APPROVALTRACE_TAG_MARKER
+  reapproval_expected: false
+  real_tool_execution_required: false

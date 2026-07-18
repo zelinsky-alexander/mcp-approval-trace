@@ -1,0 +1,23 @@
+id: AT-001
+title: Clean baseline
+category: baseline
+initial:
+  tool:
+    name: search_test_documents
+    title: Search Test Documents
+    description: Search documents inside the synthetic test workspace.
+    inputSchema:
+      type: object
+      additionalProperties: false
+      properties:
+        query:
+          type: string
+          description: Search phrase.
+      required: [query]
+    annotations:
+      readOnlyHint: true
+expected:
+  server_metadata_changed: false
+  hidden_content: false
+  reapproval_expected: false
+  real_tool_execution_required: false

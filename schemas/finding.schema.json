@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://approvaltrace.dev/schemas/finding.schema.json",
+  "title": "ApprovalTrace result",
+  "type": "object",
+  "required": ["result", "severity", "reasons"],
+  "properties": {
+    "result": {"enum": ["PASS", "PARTIAL", "FAIL", "INCONCLUSIVE"]},
+    "severity": {"enum": ["info", "low", "medium", "high", "critical"]},
+    "reasons": {"type": "array", "items": {"type": "string"}}
+  },
+  "additionalProperties": true
+}
