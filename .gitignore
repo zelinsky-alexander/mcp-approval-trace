@@ -16,3 +16,4 @@ results/private/
 *.local.json
 .DS_Store
 Thumbs.db
+/debug.log

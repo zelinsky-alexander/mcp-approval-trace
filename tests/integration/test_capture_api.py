@@ -50,3 +50,56 @@ def test_supports_responses_api(tmp_path: Path) -> None:
 
     assert response.status_code == 200
     assert response.json()["object"] == "response"
+
+
+def test_streams_chat_completions_when_requested(tmp_path: Path) -> None:
+    client = TestClient(create_app(tmp_path))
+    client.post(
+        "/approvaltrace/activate",
+        json={"run_id": "run-stream", "scenario_id": "AT-001", "phase": "initial"},
+    )
+
+    with client.stream(
+        "POST",
+        "/v1/chat/completions",
+        json={
+            "model": "approvaltrace-capture",
+            "messages": [{"role": "user", "content": "test"}],
+            "stream": True,
+            "stream_options": {"include_usage": True},
+        },
+    ) as response:
+        body = "".join(response.iter_text())
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/event-stream")
+    assert '"object":"chat.completion.chunk"' in body
+    assert '"content":"ApprovalTrace capture complete."' in body
+    assert '"usage":{"prompt_tokens":0,"completion_tokens":0,"total_tokens":0}' in body
+    assert body.endswith("data: [DONE]\n\n")
+    captures = client.get("/approvaltrace/runs/run-stream/captures").json()
+    assert len(captures) == 1
+
+
+def test_uses_cline_plan_completion_wrapper(tmp_path: Path) -> None:
+    client = TestClient(create_app(tmp_path))
+    response = client.post(
+        "/v1/chat/completions",
+        json={
+            "model": "approvaltrace-capture",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "Use <plan_mode_respond> to return the final response.",
+                },
+                {"role": "user", "content": "test"},
+            ],
+        },
+    )
+
+    content = response.json()["choices"][0]["message"]["content"]
+    assert content == (
+        "<plan_mode_respond>\n"
+        "<response>ApprovalTrace capture complete.</response>\n"
+        "</plan_mode_respond>"
+    )

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import time
 import uuid
@@ -8,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, Request
+from fastapi.responses import StreamingResponse
 
 from approvaltrace.capture_api.models import ActivateScenarioRequest, CaptureRecord
 from approvaltrace.capture_api.redaction import redact
@@ -21,7 +23,30 @@ def _extract_tools(body: dict[str, Any]) -> list[dict[str, Any]]:
     return []
 
 
-def _canned_chat_response() -> dict[str, Any]:
+def _completion_content(body: dict[str, Any]) -> str:
+    system_text = "\n".join(
+        message.get("content", "")
+        for message in body.get("messages", [])
+        if isinstance(message, dict)
+        and message.get("role") == "system"
+        and isinstance(message.get("content"), str)
+    )
+    if "<plan_mode_respond>" in system_text:
+        return (
+            "<plan_mode_respond>\n"
+            "<response>ApprovalTrace capture complete.</response>\n"
+            "</plan_mode_respond>"
+        )
+    if "<attempt_completion>" in system_text:
+        return (
+            "<attempt_completion>\n"
+            "<result>ApprovalTrace capture complete.</result>\n"
+            "</attempt_completion>"
+        )
+    return "ApprovalTrace capture complete."
+
+
+def _canned_chat_response(*, content: str) -> dict[str, Any]:
     return {
         "id": f"chatcmpl-{uuid.uuid4().hex[:12]}",
         "object": "chat.completion",
@@ -32,13 +57,69 @@ def _canned_chat_response() -> dict[str, Any]:
                 "index": 0,
                 "message": {
                     "role": "assistant",
-                    "content": "ApprovalTrace capture complete.",
+                    "content": content,
                 },
                 "finish_reason": "stop",
             }
         ],
         "usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
     }
+
+
+def _canned_chat_stream(*, model: str, include_usage: bool, content: str) -> StreamingResponse:
+    response_id = f"chatcmpl-{uuid.uuid4().hex[:12]}"
+    created = int(time.time())
+
+    def event(payload: dict[str, Any] | str) -> str:
+        data = payload if isinstance(payload, str) else json.dumps(payload, separators=(",", ":"))
+        return f"data: {data}\n\n"
+
+    def chunks():
+        yield event(
+            {
+                "id": response_id,
+                "object": "chat.completion.chunk",
+                "created": created,
+                "model": model,
+                "choices": [
+                    {
+                        "index": 0,
+                        "delta": {
+                            "role": "assistant",
+                            "content": content,
+                        },
+                        "finish_reason": None,
+                    }
+                ],
+            }
+        )
+        yield event(
+            {
+                "id": response_id,
+                "object": "chat.completion.chunk",
+                "created": created,
+                "model": model,
+                "choices": [{"index": 0, "delta": {}, "finish_reason": "stop"}],
+            }
+        )
+        if include_usage:
+            yield event(
+                {
+                    "id": response_id,
+                    "object": "chat.completion.chunk",
+                    "created": created,
+                    "model": model,
+                    "choices": [],
+                    "usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
+                }
+            )
+        yield event("[DONE]")
+
+    return StreamingResponse(
+        chunks(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 def _canned_responses_api() -> dict[str, Any]:
@@ -89,7 +170,7 @@ def create_app(root: Path | None = None) -> FastAPI:
             ],
         }
 
-    async def capture(request: Request, endpoint: str) -> dict[str, Any]:
+    async def capture(request: Request, endpoint: str) -> Any:
         body = await request.json()
         active = store.get_active()
         number = store.next_sequence(active.run_id)
@@ -104,7 +185,18 @@ def create_app(root: Path | None = None) -> FastAPI:
         )
         store.append_capture(record, redact(body))
         if endpoint == "/v1/chat/completions":
-            return _canned_chat_response()
+            content = _completion_content(body)
+            if body.get("stream") is True:
+                stream_options = body.get("stream_options", {})
+                include_usage = bool(
+                    isinstance(stream_options, dict) and stream_options.get("include_usage")
+                )
+                return _canned_chat_stream(
+                    model=str(body.get("model", "approvaltrace-capture")),
+                    include_usage=include_usage,
+                    content=content,
+                )
+            return _canned_chat_response(content=content)
         return _canned_responses_api()
 
     @app.post("/v1/chat/completions")

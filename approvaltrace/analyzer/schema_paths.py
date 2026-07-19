@@ -29,7 +29,5 @@ def iter_paths(value: Any, prefix: str = "") -> Iterator[tuple[str, Any]]:
 
 
 def flatten_tool(tool: dict[str, Any]) -> dict[str, Any]:
-    filtered = {
-        key: value for key, value in tool.items() if key in SECURITY_RELEVANT_ROOTS
-    }
+    filtered = {key: value for key, value in tool.items() if key in SECURITY_RELEVANT_ROOTS}
     return dict(iter_paths(filtered))
